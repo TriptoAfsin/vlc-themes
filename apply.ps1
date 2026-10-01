@@ -1,6 +1,6 @@
 # Applies the VLC dark theme + 4K scaling fix. Close VLC before running.
-# Usage: powershell -ExecutionPolicy Bypass -File apply.ps1 [-Scale 1.25]
-param([double]$Scale = 0)
+# Usage: powershell -ExecutionPolicy Bypass -File apply.ps1 [-Scale 1.5]   (-Scale 1 = no extra scaling)
+param([double]$Scale = 1.25)
 
 $vlc = "$env:APPDATA\vlc"
 if (Get-Process vlc -ErrorAction SilentlyContinue) { Write-Warning "VLC is running - close it first or it may overwrite these settings."; exit 1 }
@@ -30,6 +30,8 @@ else { $ini += "`r`n[MainWindow]`r`nQtStyle=Fusion`r`n" }
 
 # 3. HiDPI scaling (user env var, read by Qt at startup)
 [Environment]::SetEnvironmentVariable('QT_AUTO_SCREEN_SCALE_FACTOR', '1', 'User')
-if ($Scale -gt 0) { [Environment]::SetEnvironmentVariable('QT_SCALE_FACTOR', "$Scale", 'User') }
+# VLC 3 ignores the auto factor for toolbar icons; QT_SCALE_FACTOR is what actually enlarges them
+if ($Scale -gt 0 -and $Scale -ne 1) { [Environment]::SetEnvironmentVariable('QT_SCALE_FACTOR', "$Scale", 'User') }
+else { [Environment]::SetEnvironmentVariable('QT_SCALE_FACTOR', $null, 'User') }
 
 Write-Host "Done. Backups saved to $bak (suffix $ts). Sign out/in or restart Explorer if VLC still looks small."
